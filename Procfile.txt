@@ -1,1 +1,1 @@
-python mi_traductor_bot.py
+worker: python mi_traductor_bot.py
