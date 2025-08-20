@@ -1,5 +1,5 @@
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes, MessageHandler, filters
+from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes, CallbackQueryHandler, MessageHandler, filters
 from deep_translator import GoogleTranslator
 import pytz
 
@@ -103,6 +103,7 @@ def main():
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, translate))
 
     print("🤖 Bot iniciado. Esperando mensajes en Telegram...")
+    # Utilizar polling para la ejecución continua del bot
     app.run_polling()
 
 if __name__ == "__main__":
