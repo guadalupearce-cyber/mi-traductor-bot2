@@ -89,6 +89,8 @@ async def mostrar_menu_idiomas(update: Update):
     keyboard = [
         [InlineKeyboardButton(name, callback_data=code)] for code, name in IDIOMAS_DISPONIBLES.items()
     ]
+    keyboard.append([InlineKeyboardButton("Cambiar de idioma", callback_data="cambiar_idioma")])
+
     reply_markup = InlineKeyboardMarkup(keyboard)
 
     await update.message.reply_text(
@@ -96,14 +98,18 @@ async def mostrar_menu_idiomas(update: Update):
         reply_markup=reply_markup
     )
 
-# Responder a la selección de idioma
+# Responder a la selección de idioma o cambiar idioma
 async def boton_seleccionado(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     user_id = query.from_user.id
-    idioma_seleccionado[user_id] = query.data  # Guardar el idioma seleccionado
 
+    if query.data == "cambiar_idioma":
+        # Si el usuario elige cambiar de idioma, mostramos nuevamente el menú de idiomas
+        return await mostrar_menu_idiomas(update)
+
+    idioma_seleccionado[user_id] = query.data  # Guardar el idioma seleccionado
     await query.answer()
-    await query.edit_message_text(text=f"✅ Has seleccionado el idioma: {IDIOMAS_DISPONIBLES[query.data]}. ¿Deseas traducir un texto?\nEscribe un texto para traducir.")
+    await query.edit_message_text(text=f"✅ Has seleccionado el idioma: {IDIOMAS_DISPONIBLES[query.data]}.\nEscribe un texto para traducir.")
 
 # Comando /translate (traducir el texto)
 async def translate(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -141,7 +147,7 @@ def main():
     # Añadir el handler para el botón de respuesta
     app.add_handler(CallbackQueryHandler(boton_respuesta, pattern="^(registrar|no_registrar)$"))
 
-    # Añadir el handler para el botón de selección de idioma
+    # Añadir el handler para el botón de selección de idioma o cambiar idioma
     app.add_handler(CallbackQueryHandler(boton_seleccionado))
 
     # Añadir el handler para recibir textos para traducir
@@ -151,7 +157,9 @@ def main():
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, crear_usuario))
 
     print("🤖 Bot iniciado. Esperando mensajes en Telegram...")
+    # Usar polling para mantener el bot ejecutándose en Render como Background Worker
     app.run_polling()
 
 if __name__ == "__main__":
     main()
+
