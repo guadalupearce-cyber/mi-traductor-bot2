@@ -2,9 +2,7 @@ from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
 from deep_translator import GoogleTranslator
 import pytz  # Para la zona horaria
-from flask import Flask
-import threading
-import os
+
 
 TOKEN = "8053096806:AAFGPbZUYPUqU_bKTqzvB4wqgD4fpIMcM5Y"
 
@@ -18,16 +16,6 @@ IDIOMAS_DISPONIBLES = {
 }
 
 
-# Crear una app Flask básica
-flask_app = Flask(__name__)
-
-@flask_app.route('/')
-def home():
-    return "Bot está corriendo 🟢"
-
-def run_flask():
-    port = int(os.environ.get("PORT", 5000))  # Render define PORT en variables de entorno
-    flask_app.run(host="0.0.0.0", port=port)
 
 # Comando /start
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -82,22 +70,6 @@ def main():
 if __name__ == "__main__":
     main()
 
-def main():
-    # Iniciar Flask en un hilo separado
-    threading.Thread(target=run_flask).start()
-
-    # Crear la aplicación de Telegram
-    app = ApplicationBuilder().token(TOKEN).build()
-
-    # Ajustar la zona horaria del JobQueue
-    app.job_queue.scheduler.timezone = pytz.UTC
-
-    # Añadir los comandos
-    app.add_handler(CommandHandler("start", start))
-    app.add_handler(CommandHandler("translate", translate))
-
-    print("🤖 Bot iniciado. Esperando mensajes en Telegram...")
-    app.run_polling()
 
 
 
