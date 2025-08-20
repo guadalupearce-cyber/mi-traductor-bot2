@@ -2,6 +2,7 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes, CallbackQueryHandler, MessageHandler, filters
 from deep_translator import GoogleTranslator
 import pytz
+import os
 
 # Token del bot de Telegram
 TOKEN = "8053096806:AAFGPbZUYPUqU_bKTqzvB4wqgD4fpIMcM5Y"
@@ -20,6 +21,7 @@ idioma_seleccionado = {}
 
 # Comando /start (inicio)
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    # Mostrar el menú de selección de idioma
     return await mostrar_menu_idiomas(update)
 
 # Mostrar el menú de selección de idioma
