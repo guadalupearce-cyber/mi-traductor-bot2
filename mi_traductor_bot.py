@@ -20,13 +20,6 @@ idioma_seleccionado = {}
 
 # Comando /start (inicio)
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user_id = update.message.from_user.id
-
-    # Si ya se ha seleccionado un idioma, mostrar las opciones de idioma
-    if user_id in idioma_seleccionado:
-        return await mostrar_menu_idiomas(update)
-
-    # Si no, mostrar las opciones de idioma
     return await mostrar_menu_idiomas(update)
 
 # Mostrar el menú de selección de idioma
