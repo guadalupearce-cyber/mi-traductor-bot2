@@ -89,8 +89,7 @@ async def mostrar_menu_idiomas(update: Update):
     keyboard = [
         [InlineKeyboardButton(name, callback_data=code)] for code, name in IDIOMAS_DISPONIBLES.items()
     ]
-    keyboard.append([InlineKeyboardButton("Cambiar de idioma", callback_data="cambiar_idioma")])
-
+    keyboard.append([InlineKeyboardButton("❌ Cambiar de idioma", callback_data="cambiar_idioma")])  # Agregar la opción de cambio de idioma
     reply_markup = InlineKeyboardMarkup(keyboard)
 
     await update.message.reply_text(
@@ -98,68 +97,20 @@ async def mostrar_menu_idiomas(update: Update):
         reply_markup=reply_markup
     )
 
-# Responder a la selección de idioma o cambiar idioma
+# Responder a la selección de idioma
 async def boton_seleccionado(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     user_id = query.from_user.id
+    if query.data != "cambiar_idioma":
+        idioma_seleccionado[user_id] = query.data  # Guardar el idioma seleccionado
 
-    if query.data == "cambiar_idioma":
-        # Si el usuario elige cambiar de idioma, mostramos nuevamente el menú de idiomas
-        return await mostrar_menu_idiomas(update)
-
-    idioma_seleccionado[user_id] = query.data  # Guardar el idioma seleccionado
     await query.answer()
-    await query.edit_message_text(text=f"✅ Has seleccionado el idioma: {IDIOMAS_DISPONIBLES[query.data]}.\nEscribe un texto para traducir.")
+
+    # Si el usuario seleccionó un idioma
+    if query.data != "cambiar_idioma":
+        await query.edit_message_text(text=f"✅ Has seleccionado el idioma: {IDIOMAS_DISPONIBLES[query.data]}.\nEscribe un texto para traducir.")
+    else:
+        # Si el usuario seleccionó cambiar de idioma, mostrar nuevamente los idiomas disponibles
+        await mostrar_menu_idiomas(update)
 
 # Comando /translate (traducir el texto)
-async def translate(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user_id = update.message.from_user.id
-
-    if user_id not in usuarios_registrados or 'usuario' not in usuarios_registrados[user_id]:
-        await update.message.reply_text("❌ No estás registrado. Usa /start para crear una cuenta.")
-        return
-
-    if user_id not in idioma_seleccionado:
-        await update.message.reply_text("❌ Debes seleccionar un idioma primero. Usa /start para elegir un idioma.")
-        return
-
-    idioma_destino = idioma_seleccionado[user_id]
-    texto = update.message.text
-
-    try:
-        traduccion = GoogleTranslator(source='auto', target=idioma_destino).translate(texto)
-        await update.message.reply_text(f"✅ Traducción a {IDIOMAS_DISPONIBLES[idioma_destino]}:\n{traduccion}")
-    except Exception as e:
-        await update.message.reply_text("❌ Error al traducir. Verifica el código de idioma.")
-        print("Error de traducción:", e)
-
-def main():
-    # Crear la aplicación
-    app = ApplicationBuilder().token(TOKEN).build()
-
-    # Ajustar la zona horaria del JobQueue
-    app.job_queue.scheduler.timezone = pytz.UTC
-
-    # Añadir los comandos
-    app.add_handler(CommandHandler("start", start))
-    app.add_handler(CommandHandler("translate", translate))
-
-    # Añadir el handler para el botón de respuesta
-    app.add_handler(CallbackQueryHandler(boton_respuesta, pattern="^(registrar|no_registrar)$"))
-
-    # Añadir el handler para el botón de selección de idioma o cambiar idioma
-    app.add_handler(CallbackQueryHandler(boton_seleccionado))
-
-    # Añadir el handler para recibir textos para traducir
-    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, translate))
-
-    # Añadir el handler para el registro de usuario (usuario y contraseña)
-    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, crear_usuario))
-
-    print("🤖 Bot iniciado. Esperando mensajes en Telegram...")
-    # Usar polling para mantener el bot ejecutándose en Render como Background Worker
-    app.run_polling()
-
-if __name__ == "__main__":
-    main()
-
